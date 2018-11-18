@@ -1,7 +1,7 @@
 {
   "name": "Lonely Less",
   "short_name": "Lonely Less",
-  "start_url": ".",
+  "start_url": "index.html?launcher=true",
   "display": "standalone",
   "background_color": "#fff",
   "description": "A app to connect people",
