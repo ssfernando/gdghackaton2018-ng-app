@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
+import { Device } from 'twilio-client';
 
 @Component({
   selector: 'app-root',
@@ -8,15 +9,60 @@ import { AngularFirestore } from '@angular/fire/firestore';
 })
 export class AppComponent {
   items: any[] = [];
+  device: any;
 
   constructor(db: AngularFirestore) {
     db.collection('lonelyPeople').valueChanges().subscribe(result => {
       this.items = result;
     });
+    fetch('https://byzantium-cheetah-8594.twil.io/capability-token').then((data: any) => {
+        console.log('Got a token.');
+        console.log('Token: ' + data.token);
+
+        // Setup Twilio.Device
+        this.device = new Device(data.token);
+
+        this.device.on('ready',function (device) {
+          // show call button
+        });
+
+        this.device.on('error', function (error) {
+          console.log('Twilio.Device Error: ' + error.message);
+        });
+
+        this.device.on('connect', function (conn) {
+          // change call button to duration
+        });
+
+        this.device.on('disconnect', function (conn) {
+          // show end call message
+        });
+      })
+      .catch(function (err) {
+        console.log(err);
+        console.log('Could not get a token from server!');
+      });
   }
 
   call() {
+    // get the phone number to connect the call to
     const randonPersonToCall = this.items[Math.floor(Math.random() * this.items.length)];
-    console.log(randonPersonToCall);
+    var params = {
+      To: randonPersonToCall.phoneNumber
+    };
+
+    console.log('Calling ' + params.To + '...');
+    if (this.device) {
+      this.device.connect(params);
+    }
   }
+
+  hangup() {
+    // Bind button to hangup call
+    console.log('Hanging up...');
+    if (this.device) {
+      this.device.disconnectAll();
+    }
+  }
+
 }
