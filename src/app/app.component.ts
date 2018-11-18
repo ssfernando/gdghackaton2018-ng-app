@@ -10,32 +10,38 @@ import { Device } from 'twilio-client';
 export class AppComponent {
   items: any[] = [];
   device: any;
+  showCall: Boolean = false;
+  showHangup: Boolean = false;
 
   constructor(db: AngularFirestore) {
     db.collection('lonelyPeople').valueChanges().subscribe(result => {
       this.items = result;
     });
-    fetch('https://byzantium-cheetah-8594.twil.io/capability-token').then((data: any) => {
+    fetch('https://byzantium-cheetah-8594.twil.io/capability-token')
+    .then(response => response.json())
+    .then((data: any) => {
         console.log('Got a token.');
         console.log('Token: ' + data.token);
 
         // Setup Twilio.Device
         this.device = new Device(data.token);
 
-        this.device.on('ready',function (device) {
-          // show call button
+        this.device.on('ready', device => {
+          this.showCall = true;
         });
 
-        this.device.on('error', function (error) {
+        this.device.on('error', error => {
           console.log('Twilio.Device Error: ' + error.message);
         });
 
-        this.device.on('connect', function (conn) {
-          // change call button to duration
+        this.device.on('connect', conn => {
+          this.showCall = false;
+          this.showHangup = true;
         });
 
-        this.device.on('disconnect', function (conn) {
-          // show end call message
+        this.device.on('disconnect', conn => {
+          this.showCall = true;
+          this.showHangup = false;
         });
       })
       .catch(function (err) {
